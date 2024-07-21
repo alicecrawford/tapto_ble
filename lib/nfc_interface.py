@@ -7,6 +7,7 @@ Interface to an NFC reader, currently just a PN532.
 '''
 
 
+import board
 import busio
 
 from collections import namedtuple
@@ -26,6 +27,18 @@ NfcTagData = namedtuple(
     'NfcTagData',
     ['uid', 'tag_size', 'complete', 'tag_data', 'ndef_data']
 )
+
+
+def setup_pins(config: dict) -> dict:
+    pins = {}
+    for key, value in config['nfc'].items():
+        if key.endswith('_pin'):
+            if value:
+                pins[key] = DigitalInOut(getattr(board, value))
+            else:
+                pins[key] = None
+
+    return pins
 
 
 class NfcInterface:
