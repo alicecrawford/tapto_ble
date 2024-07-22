@@ -141,5 +141,7 @@ class NfcInterface:
 
         if not raw:
             tag_data = tag_data[:ndef_data_size]
+            if len(tag_data) != ndef_data_size:
+                return None
 
         return tag_data
