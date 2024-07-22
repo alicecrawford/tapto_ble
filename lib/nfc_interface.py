@@ -129,6 +129,9 @@ class NfcInterface:
                 break
             tag_data += block
             if not raw and i == 0:
+                # TODO: Consider looking for the first 0x03 as the data start
+                if tag_data[0] != 0x03:
+                    return None
                 if tag_data[1] < 0xff:
                     ndef_data_size = tag_data[1]
                     tag_data = tag_data[2:]
