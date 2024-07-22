@@ -23,9 +23,10 @@ FirmwareVersion = namedtuple(
     ['ic', 'ver', 'rev', 'support']
 )
 
-NfcTagData = namedtuple(
-    'NfcTagData',
-    ['uid', 'tag_size', 'complete', 'tag_data', 'ndef_data']
+
+NfcTagInfo = namedtuple(
+    'NfcTagInfo',
+    ['uid', 'serial_number', 'tag_size', 'tag_type']
 )
 
 
@@ -88,46 +89,57 @@ class NfcInterface:
     def firmware_version(self) -> FirmwareVersion:
         return self._firmware_version
 
-    def read_tag(self, timeout: float = 1) -> NfcTagData | None:
+    def check_for_tag(self, timeout: float = 1) -> NfcTagInfo | None:
         uid = self._pn532.read_passive_target(timeout=timeout)
-        print('uid: ', uid)
-
         if not uid:
             return None
 
-        # TODO: Add support for MiFare cards, other tag data types.
+        tag_info = self._pn532.ntag2xx_read_block(0) or bytearray()
+        tag_info += self._pn532.ntag2xx_read_block(1) or bytearray()
+        tag_info += self._pn532.ntag2xx_read_block(2) or bytearray()
+        tag_info += self._pn532.ntag2xx_read_block(3) or bytearray()
 
+        if len(tag_info) != 16:
+            return None
+
+        serial_number = tag_info[:9]
+        page_count = tag_info[14] * 2
+
+        if tag_info[12] != 0xe1:
+            return None
+
+        # TODO: Add support for MiFare classic cards and other non-ntag cards
+        return NfcTagInfo(uid, serial_number, page_count, 'ntag')
+
+    def read_ntag(self,
+                  raw: bool = False,
+                  timeout: float = 1) -> bytearray | None:
         cc_block = self._pn532.ntag2xx_read_block(3)
 
         if cc_block is None or cc_block[0] != 0xe1:
             return None
 
         page_count = cc_block[2] * 2
-        ntag_size = page_count * 4
 
         tag_data = bytearray()
+        ndef_data_size = 0
         for i in range(page_count):
             block = self._pn532.ntag2xx_read_block(4 + i)
             if block is None:
                 break
             tag_data += block
+            if not raw and i == 0:
+                if tag_data[1] < 0xff:
+                    ndef_data_size = tag_data[1]
+                    tag_data = tag_data[2:]
+                else:
+                    ndef_data_size = tag_data[2] | (tag_data[3] << 8)
+                    tag_data = bytearray()
+                ndef_data_size += 1
+            if not raw and len(tag_data) > ndef_data_size:
+                break
 
-        complete = (ntag_size == len(tag_data))
+        if not raw:
+            tag_data = tag_data[:ndef_data_size]
 
-        ndef_data = None
-        if len(tag_data) >= 4 and tag_data[0] == 0x03:
-            if tag_data[1] < 0xff:
-                ndef_data_size = tag_data[1]
-                ndef_data = tag_data[2:]
-            else:
-                ndef_data_size = tag_data[2] | (tag_data[3] << 8)
-                ndef_data = tag_data[4:]
-            ndef_data_size += 1
-            if len(ndef_data) >= ndef_data_size:
-                ndef_data = ndef_data[:ndef_data_size]
-            else:
-                ndef_data = None
-
-        return NfcTagData(
-            uid, ntag_size, complete, tag_data, ndef_data
-        )
+        return tag_data
