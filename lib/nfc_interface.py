@@ -136,7 +136,8 @@ class NfcInterface:
                     ndef_data_size = tag_data[1]
                     tag_data = tag_data[2:]
                 else:
-                    ndef_data_size = tag_data[2] | (tag_data[3] << 8)
+                    ndef_data_size = int.from_bytes(tag_data[2:4],
+                                                    byteorder='big')
                     tag_data = bytearray()
                 ndef_data_size += 1
             if not raw and len(tag_data) > ndef_data_size:
