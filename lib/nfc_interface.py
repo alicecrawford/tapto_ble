@@ -145,12 +145,13 @@ class NfcInterface:
 
         if not raw:
             tag_data = tag_data[:ndef_data_size]
-            if (len(tag_data) != ndef_data_size or
+            if (tag_data and
+                (len(tag_data) != ndef_data_size or
                     # Now, if there's 2 NDEF messages here we'll bork; which is
                     # wrong but kinda an edge case for the application.
                     # Properly done multiple NDEF messages should be parsed
                     # until the terminator is found.
-                    tag_data[-1] != 0xfe):
+                    tag_data[-1] != 0xfe)):
                 return None
             tag_data = tag_data[:-1]
 

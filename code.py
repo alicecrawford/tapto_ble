@@ -1,5 +1,5 @@
 '''
-
+code.py - Main init and loop code
 '''
 
 
@@ -10,8 +10,7 @@ import time
 import interfaces
 import nfc_interface
 import ble_interface
-
-import pyndef
+import command_parser
 
 
 def main():
@@ -42,46 +41,13 @@ def main():
         supervisor.reload()
 
     ble = ble_interface.BleInterface(config)
-
-    last_tag = None
-    last_tag_data = None
-    tag_loop_counter = 0
+    cmd_prs = command_parser.CommandParser(nfc, ble)
 
     while True:
         if not ble.advertising and not ble.connected:
             ble.start_advertising()
 
-        tag_info = nfc.check_for_tag()
-
-        # If the last tag is still on the reader we just sleep for a second
-        if last_tag and tag_info == last_tag and last_tag_data:
-            tag_loop_counter = 0
-            time.sleep(1)
-            continue
-
-        if not tag_info:
-            if last_tag:
-                if tag_loop_counter >= 1:
-                    last_tag = None
-                    last_tag_data = None
-                    tag_loop_counter = 0
-                    print('Tag removed')
-                else:
-                    tag_loop_counter += 1
-            continue
-
-        print('Found tag: ', tag_info)
-        last_tag = tag_info
-        tag_loop_counter = 0
-        tag_data = nfc.read_ntag()
-        last_tag_data = tag_data
-        if not tag_data:
-            print('No tag data read')
-        else:
-            ndef = pyndef.NdefMessage.parse(tag_data)
-            ble.uart_write(str(ndef))
-            print('Ndef data:')
-            print(ndef)
+        cmd_prs.do_tick()
 
 
 main()

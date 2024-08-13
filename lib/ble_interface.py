@@ -1,5 +1,5 @@
 '''
-
+ble_interface.py - BLE uart interface
 '''
 
 
@@ -38,18 +38,17 @@ class BleInterface:
 
     def uart_read(self, nbytes=None, wait_timeout=False):
         if not self.connected or not self._uart.in_waiting:
-            return None
+            return b''
 
         if wait_timeout:
-            return self._uart.read(nbytes)
+            return self._uart.read(nbytes) or b''
         else:
             if nbytes:
-                return self._uart.read(min(nbytes, self._uart.in_waiting))
+                return self._uart.read(
+                    min(nbytes, self._uart.in_waiting)) or b''
             else:
-                return self._uart.read(self._uart.in_waiting)
+                return self._uart.read(self._uart.in_waiting) or b''
 
     def uart_write(self, buf):
-        print('writing ', buf)
         if self.connected:
-            print('mrp')
             self._uart.write(buf)
