@@ -1,0 +1,32 @@
+{
+  "system": {
+    "protocol": "simple",
+    "name": "TapToBle"
+  },
+  "interfaces": {
+    "i2c": {
+      "enabled": "true",
+      "sda": "SDA",
+      "scl": "SCL"
+    },
+    "spi": {
+      "enabled": "false",
+      "sck": null,
+      "mosi": null,
+      "miso": null
+    },
+    "uart": {
+      "enabled": "false",
+      "tx": null,
+      "rx": null,
+      "baudrate": 115200,
+      "timeout": 0.1
+    }
+  },
+  "nfc": {
+    "interface": "i2c",
+    "cs_pin": null,
+    "req_pin": null,
+    "reset_pin": "IO33"
+  }
+}
