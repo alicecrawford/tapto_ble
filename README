@@ -1,0 +1,56 @@
+TapTo BLE NFC Reader
+--------------------
+2024 Alice Lutris
+
+
+A simple DIY BLE NFC reader intended for TapTo ( https://tapto.wiki/Main_Page ).
+It uses a PN532 NFC IC module and a CircuitPython compatable microcontroller to
+scan cards wirelessly.
+
+
+Requirements
+------------
+PN532 NFC reader
+Compatable microcontroller: https://circuitpython.org/downloads?features=Bluetooth%2FBTLE
+    (I used a Unexpected Maker Feather S3)
+
+CircuitPython for your specific microcontroller
+
+Adafruit CircuitPython libraries:
+    adafruit_bus_device
+    adafruit_pn532
+    adafruit_ble
+
+Modified PyNdef for CircuitPython: https://github.com/alicecrawford/PyNdef
+
+
+Making your own
+---------------
+This step will require a little knowledge of how to work with microcontroller
+development boards.
+
+Hook up the PN532 to the microcontroller board.  It can be connected via I2C,
+SPI, or UART.  Currently only I2C is tested.  Modify the config.json file
+to correspond to the pins that you connect the PN532 to and the interface
+used.
+
+Next install CircuitPython and copy over all the libraries into /lib on the
+microcontroller; lib should contain the following directories:
+    adafruit_bus_device
+    adafruit_pn532
+    adafruit_ble
+    pyndef
+
+(Note: pyndef should be pulled out of the src/ directory in the repo)
+
+Copy the contents of this repo to the root of the microcontroller.
+
+You're all set!  Connect to TapTo (software and instructions coming soon)
+
+
+What works
+----------
+This is a work in progress, currently the only things tested are the basic
+read interface via I2C.  Writing isn't supported, also only NTAG cards are
+supported.  Writing is planned, along with battery support for boards that
+have battery charging support.
