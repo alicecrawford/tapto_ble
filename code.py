@@ -41,7 +41,7 @@ def main():
         supervisor.reload()
 
     ble = ble_interface.BleInterface(config)
-    cmd_prs = command_parser.CommandParser(nfc, ble)
+    cmd_prs = command_parser.CommandParser(config, nfc, ble)
 
     while True:
         if not ble.advertising and not ble.connected:

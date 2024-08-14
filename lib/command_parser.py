@@ -3,16 +3,25 @@ command_parser.py - Command parser
 '''
 
 
+import board
 import pyndef
 import time
+
+from analogio import AnalogIn
 
 
 PARSER_VERSION = (0, 1)
 TIMEOUT = 10
 
+CHECK_INTERVAL = 10
+RESOLUTION = 2 ** 16 - 1
+ANALOG_VREF = 3.3
+VOLTAGE_DIV = (442 + 160) / 160
+BAT_ADJ = ANALOG_VREF / RESOLUTION * VOLTAGE_DIV
+
 
 class CommandParser:
-    def __init__(self, nfc, ble):
+    def __init__(self, config, nfc, ble):
         self._ble = ble
         self._nfc = nfc
 
@@ -21,6 +30,23 @@ class CommandParser:
 
         self._current_tag = None
         self._tag_data = b''
+
+        self._vbat_sense = AnalogIn(
+            getattr(board, config['system']['vbat_sense']))
+        self._vbat_level = 0
+        self._vbat_check_time = -2
+        self.update_bat()
+
+    def update_bat(self):
+        t = time.monotonic()
+        if t > self._vbat_check_time + CHECK_INTERVAL:
+            v = self._vbat_sense.value * BAT_ADJ
+            # TODO: So this battery percentage calculation is very crude,
+            # TODO: at one point I would like to either have a better
+            # TODO: calculation or a LUT of values-percentages.
+            self._vbat_level = int(round((max(v - 3.6, 0)/0.6) * 100))
+            self._vbat_check_time = t
+            self._ble.set_battery_level(self._vbat_level)
 
     def _cmd_hwver(self):
         ic, ver, rev, sup = self._nfc.firmware_version
@@ -92,6 +118,7 @@ class CommandParser:
 
     def do_tick(self):
         buf = self._ble.uart_read()
+        self.update_bat()
         if buf:
             self._input_buffer += buf
             self._last_ch_time = time.monotonic()

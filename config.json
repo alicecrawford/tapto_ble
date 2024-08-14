@@ -1,7 +1,7 @@
 {
   "system": {
-    "protocol": "simple",
-    "name": "TapToBle"
+    "name": "TapToBle",
+    "vbat_sense": "BATTERY"
   },
   "interfaces": {
     "i2c": {

@@ -51,6 +51,5 @@ You're all set!  Connect to TapTo (software and instructions coming soon)
 What works
 ----------
 This is a work in progress, currently the only things tested are the basic
-read interface via I2C.  Writing isn't supported, also only NTAG cards are
-supported.  Writing is planned, along with battery support for boards that
-have battery charging support.
+read interface via I2C.  Writing isn't supported yet, also only NTAG cards are
+supported.

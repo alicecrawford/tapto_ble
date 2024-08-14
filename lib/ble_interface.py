@@ -6,12 +6,14 @@ ble_interface.py - BLE uart interface
 from adafruit_ble import BLERadio
 from adafruit_ble.advertising.standard import ProvideServicesAdvertisement
 from adafruit_ble.services.nordic import UARTService
+from adafruit_ble.services.standard import BatteryService
 
 
 class BleInterface:
     def __init__(self, config):
         self._ble = BLERadio()
         self._uart = UARTService()
+        self._battery = BatteryService()
         self._advt = ProvideServicesAdvertisement(self._uart)
         self._ble.name = config['system']['name']
 
@@ -30,6 +32,9 @@ class BleInterface:
     @property
     def connected(self):
         return self._ble.connected
+
+    def set_battery_level(self, level):
+        self._battery.level = level
 
     def disconnect(self):
         if self.connected:
