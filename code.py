@@ -10,7 +10,7 @@ import time
 import interfaces
 import nfc_interface
 import ble_interface
-import command_parser
+import battery_interface
 
 
 def main():
@@ -41,13 +41,26 @@ def main():
         supervisor.reload()
 
     ble = ble_interface.BleInterface(config)
-    cmd_prs = command_parser.CommandParser(config, nfc, ble)
+    battery = battery_interface.Battery()
+    current_tag = None
 
     while True:
         if not ble.advertising and not ble.connected:
             ble.start_advertising()
 
-        cmd_prs.do_tick()
+        if battery.update_level():
+            ble.set_battery_level(battery.level)
+
+        tag_info = nfc.check_for_tag()
+        if tag_info != current_tag:
+            if tag_info:
+                tag_data = nfc.read_ntag()
+                if tag_data:
+                    ble.tag_read(tag_info, tag_data)
+                    current_tag = tag_info
+            else:
+                ble.tag_read(tag_info, None)
+                current_tag = tag_info
 
 
 main()
