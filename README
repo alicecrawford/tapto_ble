@@ -21,8 +21,6 @@ Adafruit CircuitPython libraries:
     adafruit_pn532
     adafruit_ble
 
-Modified PyNdef for CircuitPython: https://github.com/alicecrawford/PyNdef
-
 
 Making your own
 ---------------
